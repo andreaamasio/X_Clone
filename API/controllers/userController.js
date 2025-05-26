@@ -20,31 +20,9 @@ const validateUser = [
     }),
 
   body("password").notEmpty().withMessage(`Password: ${emptyErr}`),
-  // .isLength({ min: 8 })
-  // .withMessage(`Password: Minimum 8 characters`)
-  // .matches(/[A-Z]/)
-  // .withMessage(`Password: Must contain at least one uppercase letter`)
-  // .matches(/[0-9]/)
-  // .withMessage(`Password: Must contain at least one number`)
-  // .matches(/[\W_]/)
-  // .withMessage(
-  //   `Password: Must contain at least one special character (!@#$%^&*)`
-  //),
 ]
 const validateUpdateUser = [
   body("name").trim().notEmpty().withMessage(`Name: ${emptyErr}`),
-
-  //body("avatarUrl").isURL().withMessage("Please use a valid URL for the avatar")
-  // .isLength({ min: 8 })
-  // .withMessage(`Password: Minimum 8 characters`)
-  // .matches(/[A-Z]/)
-  // .withMessage(`Password: Must contain at least one uppercase letter`)
-  // .matches(/[0-9]/)
-  // .withMessage(`Password: Must contain at least one number`)
-  // .matches(/[\W_]/)
-  // .withMessage(
-  //   `Password: Must contain at least one special character (!@#$%^&*)`
-  //),
 ]
 
 const getSignUp = (req, res) => {
@@ -67,7 +45,6 @@ const postSignUp = [
     const hashedPassword = await bcrypt.hash(req.body.password, 10)
     const name = req.body.name
     const username = req.body.username
-    //const avatarUrl = req.body.avatarUrl
 
     await db.postNewUser(email, hashedPassword, name, username)
 
@@ -102,9 +79,14 @@ const postLogin = async (req, res) => {
   try {
     const match = await bcrypt.compare(req.body.password, user.password)
     if (match) {
-      const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "1h",
-      })
+      //   const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+      //     expiresIn: "1h",
+      //   })
+      const accessToken = jwt.sign(
+        { id: user.id, email: user.email },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: "1h" }
+      )
       return res.json({
         message: `Hi ${user.email}, you successfully logged in.`,
         accessToken,
@@ -113,8 +95,11 @@ const postLogin = async (req, res) => {
           email: user.email,
           name: user.name,
           bio: user.bio,
-          updatedAt: user.updatedAt,
+          username: user.username,
           createdAt: user.createdAt,
+          following: user.following,
+          followers: user.followers,
+          profileImage: user.profileImage,
         },
       })
     } else {
@@ -125,6 +110,7 @@ const postLogin = async (req, res) => {
   } catch (err) {
     return res.status(500).json({
       message: "Error during password comparison",
+      error: err,
     })
   }
 }
