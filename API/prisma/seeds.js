@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client")
 const { faker } = require("@faker-js/faker")
+const bcrypt = require("bcryptjs")
 
 const prisma = new PrismaClient()
 
@@ -16,16 +17,19 @@ async function main() {
   // Create fake users
   const users = []
   for (let i = 0; i < 10; i++) {
+    const password = faker.internet.password()
+    const hashedPassword = await bcrypt.hash(password, 10)
     const user = await prisma.user.create({
       data: {
         email: faker.internet.email(),
         username: faker.internet.username(),
         name: faker.person.fullName(),
         bio: faker.lorem.sentence(),
-        password: faker.internet.password(), // In real apps, passwords must be hashed
+        password: hashedPassword,
         profileImage: faker.image.avatar(),
       },
     })
+    console.log(user.email, password)
     users.push(user)
   }
 
