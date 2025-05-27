@@ -39,10 +39,10 @@ async function findUserById(id) {
     throw error
   }
 }
-async function findPostId(messageId) {
+async function findPostId(postId) {
   try {
-    const message = await prisma.message.findUnique({
-      where: { messageId },
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
     })
 
     if (post) {
@@ -105,7 +105,43 @@ async function updateUser(userId, name, bio) {
     throw error
   }
 }
-async function findPosts(userId) {
+
+async function getUserPosts(userId) {
+  try {
+    const posts = await prisma.post.findMany({
+      where: {
+        authorId: loggedInUserId, // their own posts
+      },
+
+      include: {
+        author: true,
+        _count: {
+          select: {
+            likes: true,
+            comments: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      // skip: page * pageSize,  // e.g., page = 0, pageSize = 10 for the first page
+      // take: pageSize,         // how many posts to return per page
+    })
+
+    if (posts) {
+      console.log(`User posts found: ${posts}`)
+    } else {
+      console.log(`User posts not found`)
+    }
+
+    return posts
+  } catch (error) {
+    console.error(`Error finding user posts`, error)
+    throw error
+  }
+}
+async function getWallPosts(userId) {
   try {
     const posts = await prisma.post.findMany({
       where: {
@@ -141,14 +177,14 @@ async function findPosts(userId) {
     })
 
     if (posts) {
-      console.log(`Posts found: ${posts}`)
+      console.log(`Wall posts found: ${posts}`)
     } else {
-      console.log(`Posts not found`)
+      console.log(`Wall posts not found`)
     }
 
     return posts
   } catch (error) {
-    console.error(`Error finding posts`, error)
+    console.error(`Error finding wall posts`, error)
     throw error
   }
 }
@@ -242,7 +278,8 @@ module.exports = {
   deletePostById,
   findPostId,
   postNewPost,
-  findPosts,
+  getUserPosts,
+  getWallPosts,
   updatePost,
   findFollowing,
 }
