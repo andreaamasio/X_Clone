@@ -270,6 +270,48 @@ async function deletePostById(postId) {
   }
 }
 
+async function findCommentById(commentId) {
+  try {
+    const comment = await prisma.comment.findUnique({
+      where: { id: commentId },
+    })
+
+    if (comment) {
+      console.log(`Comment found by ID: ${commentId}`)
+    } else {
+      console.log(`Comment not found by ID: ${commentId}`)
+    }
+
+    return comment
+  } catch (error) {
+    console.error(`Error finding comment by ID (${commentId}):`, error)
+    throw error
+  }
+}
+
+async function deleteCommentById(commentId) {
+  try {
+    const deletedPost = await prisma.comment.delete({
+      where: {
+        id: commentId,
+      },
+    })
+
+    console.log(`Deleted commentedId: ${commentId}`)
+    return deletedPost
+  } catch (error) {
+    console.error(`Error deleting comment (${commentId}):`, error)
+    throw error
+  }
+}
+updateCommentById(commentId, content)
+
+findCommentsByUserId(userId)
+
+findCommentsByPostId(postId)
+
+createComment(authorId, postId, content)
+
 module.exports = {
   findUserByEmail,
   findUserById,
