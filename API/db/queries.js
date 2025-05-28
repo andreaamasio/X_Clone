@@ -60,7 +60,7 @@ async function findPostId(postId) {
 
 async function updatePost(postId, newContent) {
   try {
-    const updatePost = await prisma.post.update({
+    const updatedPost = await prisma.post.update({
       where: {
         id: postId,
       },
@@ -69,13 +69,13 @@ async function updatePost(postId, newContent) {
       },
     })
 
-    if (updatepost) {
+    if (updatedPost) {
       console.log(`post by ID: ${postId} updated with ${newContent}`)
     } else {
       console.log(`error updating post: ${postId}`)
     }
 
-    return updatePost
+    return updatedPost
   } catch (error) {
     console.error(`Error updating post by ID (${postId}):`, error)
     throw error
@@ -282,4 +282,5 @@ module.exports = {
   getWallPosts,
   updatePost,
   findFollowing,
+  updatePost,
 }
