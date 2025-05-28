@@ -17,7 +17,7 @@ const getPost = async (req, res) => {
 
 const deletePost = async (req, res) => {
   const { postId } = req.params
-  const deletedPost = await db.deleteMessageById(postId)
+  const deletedPost = await db.deletePostById(postId)
   res.json({ deletedPost })
 }
 const updatePost = [
