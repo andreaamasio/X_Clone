@@ -150,13 +150,13 @@ async function getWallPosts(userId) {
             author: {
               followers: {
                 some: {
-                  followerId: loggedInUserId, // people the user follows
+                  followerId: userId, // people the user follows
                 },
               },
             },
           },
           {
-            authorId: loggedInUserId, // their own posts
+            authorId: userId, // their own posts
           },
         ],
       },
@@ -236,11 +236,11 @@ async function postNewUser(email, hashedPassword, name, username) {
   }
 }
 
-async function postNewPost(author, content) {
+async function postNewPost(authorId, content) {
   try {
     const newPost = await prisma.post.create({
       data: {
-        author,
+        authorId,
 
         content,
       },

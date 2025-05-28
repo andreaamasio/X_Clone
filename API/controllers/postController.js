@@ -64,13 +64,13 @@ const postNewPost = [
       })
     }
 
-    const author = req.user.id
+    const authorId = req.user.id
     const content = req.body.content
 
-    const newPost = await db.postNewMessage(author, content)
+    const newPost = await db.postNewPost(authorId, content)
 
     res.json({
-      message: `The user ${author} created post with content ${content}`,
+      message: `The user ${authorId} created post with content ${content}`,
       newPost,
     })
   },
