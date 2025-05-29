@@ -1,86 +1,82 @@
 const { body, validationResult } = require("express-validator")
-const bcrypt = require("bcryptjs")
 const db = require("../db/queries")
-
-const jwt = require("jsonwebtoken")
 
 const emptyErr = "cannot be empty."
 const validateMessage = [
   body("content").trim().notEmpty().withMessage(`Content: ${emptyErr}`),
 ]
 
-const getPost = async (req, res) => {
-  const { postId } = req.params
-  const post = await db.findPostId(postId)
-  res.json({ post })
+// Get a single comment by ID (public)
+const getComment = async (req, res) => {
+  const { commentId } = req.params
+  const comment = await db.findCommentById(commentId)
+  res.json({ comment })
 }
 
-const deletePost = async (req, res) => {
-  const { postId } = req.params
-  const deletedPost = await db.deletePostById(postId)
-  res.json({ deletedPost })
+// Delete a comment (auth required)
+const deleteComment = async (req, res) => {
+  const { commentId } = req.params
+  const deletedComment = await db.deleteCommentById(commentId)
+  res.json({ deletedComment })
 }
-const updatePost = [
+
+// Update a comment (auth + validation required)
+const updateComment = [
   validateMessage,
   async (req, res) => {
-    console.log("Incoming body:", req.body)
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
-      console.log("errors found")
-      return res.status(400).json({
-        errors: errors.array(),
-      })
+      return res.status(400).json({ errors: errors.array() })
     }
-    const { postId } = req.params
+
+    const { commentId } = req.params
     const content = req.body.content
-    const newPost = await db.updatePost(postId, content)
-    res.json({ newPost })
+
+    const updatedComment = await db.updateCommentById(commentId, content)
+    res.json({ updatedComment })
   },
 ]
-const getUserPosts = async (req, res) => {
-  const { userId } = req.params
-  const senderId = req.user.id
-  const posts = await db.getUserPosts(userId)
 
-  res.json({ posts })
-}
-const getWallPosts = async (req, res) => {
+// Get all comments made by a user (auth required)
+const getUserComments = async (req, res) => {
   const { userId } = req.params
-  const posts = await db.getWallPosts(userId)
-
-  res.json({ posts })
+  const comments = await db.findCommentsByUserId(userId)
+  res.json({ comments })
 }
 
-const postNewPost = [
+// Get all comments under a post (public)
+const getPostComments = async (req, res) => {
+  const { postId } = req.params
+  const comments = await db.findCommentsByPostId(postId)
+  res.json({ comments })
+}
+
+// Create a new comment (auth + validation required)
+const CommentNewComment = [
   validateMessage,
-
   async (req, res) => {
-    console.log("Incoming body:", req.body)
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
-      console.log("errors found")
-      return res.status(400).json({
-        errors: errors.array(),
-      })
+      return res.status(400).json({ errors: errors.array() })
     }
 
     const authorId = req.user.id
-    const content = req.body.content
+    const { content, postId } = req.body
 
-    const newPost = await db.postNewPost(authorId, content)
+    const newComment = await db.postComment(authorId, postId, content)
 
     res.json({
-      message: `The user ${authorId} created post with content ${content}`,
-      newPost,
+      message: `User ${authorId} commented on post ${postId}`,
+      newComment,
     })
   },
 ]
 
 module.exports = {
-  getPost,
-  updatePost,
-  deletePost,
-  getUserPosts,
-  getWallPosts,
-  postNewPost,
+  getComment,
+  deleteComment,
+  updateComment,
+  getUserComments,
+  getPostComments,
+  CommentNewComment,
 }

@@ -110,7 +110,7 @@ async function getUserPosts(userId) {
   try {
     const posts = await prisma.post.findMany({
       where: {
-        authorId: loggedInUserId, // their own posts
+        authorId: userId, // their own posts
       },
 
       include: {
@@ -304,13 +304,120 @@ async function deleteCommentById(commentId) {
     throw error
   }
 }
-updateCommentById(commentId, content)
 
-findCommentsByUserId(userId)
+async function updateCommentById(commentId, content) {
+  try {
+    const updatedComment = await prisma.comment.update({
+      where: {
+        id: commentId,
+      },
+      data: {
+        content: content,
+      },
+    })
 
-findCommentsByPostId(postId)
+    if (updatedComment) {
+      console.log(`post by ID: ${commentId} updated with ${content}`)
+    } else {
+      console.log(`error updating post: ${commentId}`)
+    }
 
-createComment(authorId, postId, content)
+    return updateCommentById
+  } catch (error) {
+    console.error(`Error updating post by ID (${commentId}):`, error)
+    throw error
+  }
+}
+
+async function findCommentsByUserId(userId) {
+  try {
+    const comments = await prisma.comment.findMany({
+      where: {
+        authorId: userId, // their own posts
+      },
+
+      include: {
+        author: true,
+        _count: {
+          select: {
+            likes: true,
+            comments: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      // skip: page * pageSize,  // e.g., page = 0, pageSize = 10 for the first page
+      // take: pageSize,         // how many posts to return per page
+    })
+
+    if (comments) {
+      console.log(`User comments found: ${comments}`)
+    } else {
+      console.log(`User comments not found`)
+    }
+
+    return comments
+  } catch (error) {
+    console.error(`Error finding comments`, error)
+    throw error
+  }
+}
+
+async function findCommentsByPostId(postId) {
+  try {
+    const comments = await prisma.comment.findMany({
+      where: {
+        postId,
+      },
+
+      include: {
+        author: true,
+        _count: {
+          select: {
+            likes: true,
+            comments: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      // skip: page * pageSize,  // e.g., page = 0, pageSize = 10 for the first page
+      // take: pageSize,         // how many posts to return per page
+    })
+
+    if (comments) {
+      console.log(`Post comments found: ${comments.length}`)
+    } else {
+      console.log(`Post comments not found`)
+    }
+
+    return comments
+  } catch (error) {
+    console.error(`Error finding user posts`, error)
+    throw error
+  }
+}
+
+async function postComment(authorId, postId, content) {
+  try {
+    const newComment = await prisma.comment.create({
+      data: {
+        authorId,
+        postId,
+        content,
+      },
+    })
+
+    console.log(`Comment successfully created: ${content}`)
+    return newComment
+  } catch (error) {
+    console.error(`Error creating new comment (${content}):`, error)
+    throw error
+  }
+}
 
 module.exports = {
   findUserByEmail,
@@ -325,4 +432,10 @@ module.exports = {
   updatePost,
   findFollowing,
   updatePost,
+  findCommentById,
+  deleteCommentById,
+  updateCommentById,
+  findCommentsByPostId,
+  findCommentsByUserId,
+  postComment,
 }
