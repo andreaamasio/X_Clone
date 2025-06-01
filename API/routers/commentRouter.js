@@ -1,7 +1,8 @@
 const { Router } = require("express")
 
-const commentController = require("../controllers/CommentController")
+const commentController = require("../controllers/commentController")
 const userController = require("../controllers/userController")
+const { authorizeOwnership } = require("../middleware/authorizeOwnership")
 const commentRouter = Router()
 
 commentRouter.get(
@@ -22,17 +23,19 @@ commentRouter.get(
 commentRouter.put(
   "/:commentId",
   userController.authenticateToken,
+  authorizeOwnership("comment"),
   commentController.updateComment
 )
 commentRouter.delete(
   "/:commentId",
   userController.authenticateToken,
+  authorizeOwnership("comment"),
   commentController.deleteComment
 )
 commentRouter.post(
-  "/",
+  "/under-post/:postId",
   userController.authenticateToken,
-  commentController.CommentNewComment
+  commentController.postNewComment
 )
 
 module.exports = commentRouter

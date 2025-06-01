@@ -52,7 +52,7 @@ const getPostComments = async (req, res) => {
 }
 
 // Create a new comment (auth + validation required)
-const CommentNewComment = [
+const postNewComment = [
   validateMessage,
   async (req, res) => {
     const errors = validationResult(req)
@@ -61,7 +61,8 @@ const CommentNewComment = [
     }
 
     const authorId = req.user.id
-    const { content, postId } = req.body
+    const { postId } = req.params
+    const { content } = req.body
 
     const newComment = await db.postComment(authorId, postId, content)
 
@@ -78,5 +79,5 @@ module.exports = {
   updateComment,
   getUserComments,
   getPostComments,
-  CommentNewComment,
+  postNewComment,
 }

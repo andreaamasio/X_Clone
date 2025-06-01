@@ -418,6 +418,80 @@ async function postComment(authorId, postId, content) {
     throw error
   }
 }
+async function findLike(postId, userId) {
+  try {
+    const like = await prisma.like.findUnique({
+      where: {
+        userId_postId: {
+          userId,
+          postId,
+        },
+      },
+    })
+
+    if (like) {
+      console.log(`Like found for post ID: ${postId}`)
+    } else {
+      console.log(`Like not found for post ID: ${postId}`)
+    }
+
+    return like
+  } catch (error) {
+    console.error(`Error finding like by post ID (${postId}):`, error)
+    throw error
+  }
+}
+const addLike = async (postId, userId) => {
+  try {
+    return await prisma.like.create({
+      data: {
+        postId,
+        userId,
+      },
+    })
+  } catch (err) {
+    if (err.code === "P2002") {
+      throw new Error("You already liked this post.")
+    }
+    throw err
+  }
+}
+const removeLike = async (postId, userId) => {
+  return await prisma.like.deleteMany({
+    where: {
+      postId,
+      userId,
+    },
+  })
+}
+async function followUser(followerId, followingId) {
+  return await prisma.follow.create({
+    data: {
+      followerId,
+      followingId,
+    },
+  })
+}
+
+async function unfollowUser(followerId, followingId) {
+  return await prisma.follow.deleteMany({
+    where: { followerId, followingId },
+  })
+}
+
+async function getFollowers(userId) {
+  return await prisma.follow.findMany({
+    where: { followingId: userId },
+    include: { follower: true },
+  })
+}
+
+async function getFollowing(userId) {
+  return await prisma.follow.findMany({
+    where: { followerId: userId },
+    include: { following: true },
+  })
+}
 
 module.exports = {
   findUserByEmail,
@@ -438,4 +512,11 @@ module.exports = {
   findCommentsByPostId,
   findCommentsByUserId,
   postComment,
+  addLike,
+  removeLike,
+  findLike,
+  followUser,
+  unfollowUser,
+  getFollowers,
+  getFollowing,
 }

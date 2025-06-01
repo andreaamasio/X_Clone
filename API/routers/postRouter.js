@@ -2,6 +2,7 @@ const { Router } = require("express")
 
 const postController = require("../controllers/postController")
 const userController = require("../controllers/userController")
+const { authorizeOwnership } = require("../middleware/authorizeOwnership")
 const postRouter = Router()
 
 postRouter.get(
@@ -22,11 +23,13 @@ postRouter.get(
 postRouter.put(
   "/:postId",
   userController.authenticateToken,
+  authorizeOwnership("post"),
   postController.updatePost
 )
 postRouter.delete(
   "/:postId",
   userController.authenticateToken,
+  authorizeOwnership("post"),
   postController.deletePost
 )
 postRouter.post(
